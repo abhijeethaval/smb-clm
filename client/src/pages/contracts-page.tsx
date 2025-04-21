@@ -49,7 +49,7 @@ export default function ContractsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -118,7 +118,7 @@ export default function ContractsPage() {
           contract.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           contract.parties.toLowerCase().includes(searchQuery.toLowerCase());
         
-        const matchesStatus = statusFilter === "" || contract.status === statusFilter;
+        const matchesStatus = statusFilter === "all" || contract.status === statusFilter;
         
         return matchesSearch && matchesStatus;
       })
@@ -177,7 +177,7 @@ export default function ContractsPage() {
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="Draft">Draft</SelectItem>
                   <SelectItem value="Pending Approval">Pending Approval</SelectItem>
                   <SelectItem value="Approved">Approved</SelectItem>
