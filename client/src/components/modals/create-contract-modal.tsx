@@ -16,7 +16,8 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ContractTemplate } from "@shared/schema";
-import { getDefaultContentForTemplate } from "@/lib/contract-templates";
+import { getDefaultContentForTemplate, fillTemplateWithValues } from "@/lib/contract-templates";
+import { formatDate } from "@/lib/date-utils";
 
 const formSchema = z.object({
   templateId: z.string().optional(),
@@ -78,14 +79,42 @@ export function CreateContractModal({
   const processFormSubmit: SubmitHandler<FormInput> = (data) => {
     const selectedTemplate = templates.find(t => t.id.toString() === data.templateId);
     
+    // Parse values for contract data
+    const contractValue = data.contractValue ? parseFloat(data.contractValue.replace(/[$,]/g, '')) : undefined;
+    const effectiveDate = data.effectiveDate ? new Date(data.effectiveDate) : undefined;
+    const expiryDate = data.expiryDate ? new Date(data.expiryDate) : undefined;
+    
+    // Create a placeholder values map for template substitution
+    const placeholderValues: Record<string, string> = {
+      // Split the parties string to extract potential party names
+      "PARTY A": data.parties.split(/[,;&]|\band\b/)[0]?.trim() || "Party A",
+      "PARTY B": data.parties.split(/[,;&]|\band\b/)[1]?.trim() || "Party B",
+      "SELLER": data.parties.split(/[,;&]|\band\b/)[0]?.trim() || "Seller",
+      "BUYER": data.parties.split(/[,;&]|\band\b/)[1]?.trim() || "Buyer",
+      "SUPPLIER NAME": data.parties.split(/[,;&]|\band\b/)[1]?.trim() || "Supplier",
+      "BUYER NAME": data.parties.split(/[,;&]|\band\b/)[0]?.trim() || "Buyer",
+      "JURISDICTION": "State of California, United States",
+      "PARTIES": data.parties,
+      "EFFECTIVE DATE": effectiveDate ? formatDate(effectiveDate) : "TBD",
+      "DATE": new Date().toLocaleDateString(),
+      "DELIVERY DATE": expiryDate ? formatDate(expiryDate) : "TBD",
+      "GRAND TOTAL": contractValue ? `$${contractValue.toLocaleString()}` : "TBD",
+    };
+    
+    // Get and fill template content with values
+    let content = "";
+    if (selectedTemplate) {
+      content = fillTemplateWithValues(selectedTemplate.content, placeholderValues);
+    }
+    
     // Prepare the contract data
     const contractData = {
       ...data,
       templateId: data.templateId ? parseInt(data.templateId) : undefined,
-      content: selectedTemplate ? selectedTemplate.content : "", 
-      contractValue: data.contractValue ? parseFloat(data.contractValue.replace(/[$,]/g, '')) : undefined,
-      effectiveDate: data.effectiveDate ? new Date(data.effectiveDate).toISOString() : undefined,
-      expiryDate: data.expiryDate ? new Date(data.expiryDate).toISOString() : undefined,
+      content: content, 
+      contractValue: contractValue,
+      effectiveDate: effectiveDate ? effectiveDate.toISOString() : undefined,
+      expiryDate: expiryDate ? expiryDate.toISOString() : undefined,
     };
     
     onSubmit(contractData);
