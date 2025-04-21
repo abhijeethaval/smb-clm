@@ -356,6 +356,7 @@ export default function ContractDetailPage() {
   }
 
   const canEdit = user?.role === "Author" && contract.status === "Draft";
+  // Always allow Authors to submit Draft contracts for approval
   const canSubmitForApproval = user?.role === "Author" && contract.status === "Draft";
   const canApprove = user?.role === "Approver" && contract.status === "Pending Approval" && currentApproval;
   const canExecute = user?.id === contract.createdBy && contract.status === "Approved";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, ChevronDown, LogOut, Menu, Settings, User } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Settings, User, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/use-auth";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export function Header() {
   const isMobile = useMobile();
@@ -27,8 +27,15 @@ export function Header() {
     window.dispatchEvent(event);
   };
 
+  const [, navigate] = useLocation();
+
   const handleLogout = () => {
-    logoutMutation.mutate();
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        // Redirect to auth page after successful logout
+        navigate("/auth");
+      }
+    });
   };
 
   return (
@@ -105,4 +112,4 @@ export function Header() {
   );
 }
 
-import { FileText } from "lucide-react";
+
