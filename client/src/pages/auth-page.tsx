@@ -44,7 +44,7 @@ const registerSchema = z.object({
 
 export default function AuthPage() {
   const [location, navigate] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation, registerMutation, refetchUser } = useAuth();
   const { toast } = useToast();
 
   // Redirect to dashboard if user is already logged in
@@ -79,8 +79,10 @@ export default function AuthPage() {
   // Handle login form submission
   function onLoginSubmit(values: z.infer<typeof loginSchema>) {
     loginMutation.mutate(values, {
-      onSuccess: () => {
-        console.log("Login successful, redirecting to dashboard");
+      onSuccess: async () => {
+        console.log("Login successful, refreshing user data");
+        await refetchUser();
+        console.log("User data refreshed, redirecting to dashboard");
         navigate("/");
       }
     });
@@ -88,9 +90,17 @@ export default function AuthPage() {
 
   // Handle registration form submission
   function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    registerMutation.mutate(values, {
-      onSuccess: () => {
-        console.log("Registration successful, redirecting to dashboard");
+    // Calculate initials from full name for avatar display
+    const nameParts = values.fullName.split(' ');
+    const initials = nameParts.length > 1 
+      ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+      : values.fullName.substring(0, 2).toUpperCase();
+    
+    registerMutation.mutate({...values, initials}, {
+      onSuccess: async () => {
+        console.log("Registration successful, refreshing user data");
+        await refetchUser();
+        console.log("User data refreshed, redirecting to dashboard");
         navigate("/");
       }
     });
@@ -103,8 +113,10 @@ export default function AuthPage() {
       : { username: 'approver@example.com', password: 'approver123' };
     
     loginMutation.mutate(credentials, {
-      onSuccess: () => {
-        console.log("Quick login successful, redirecting to dashboard");
+      onSuccess: async () => {
+        console.log("Quick login successful, refreshing user data");
+        await refetchUser();
+        console.log("User data refreshed, redirecting to dashboard");
         navigate("/");
       }
     });

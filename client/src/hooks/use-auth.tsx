@@ -15,6 +15,7 @@ type AuthContextType = {
   loginMutation: UseMutationResult<User, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<User, Error, InsertUser>;
+  refetchUser: () => Promise<any>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
+    refetch,
   } = useQuery<User | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
+      refetch(); // Refetch user data to ensure it's up to date
       toast({
         title: "Login successful",
         description: `Welcome, ${user.fullName}!`,
@@ -58,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
+      refetch(); // Refetch user data to ensure it's up to date
       toast({
         title: "Registration successful",
         description: `Welcome, ${user.fullName}!`,
@@ -91,6 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const refetchUser = async () => {
+    return refetch();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -100,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        refetchUser,
       }}
     >
       {children}
