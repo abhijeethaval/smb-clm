@@ -358,6 +358,20 @@ export default function ContractDetailPage() {
     }
   };
 
+  // Add effect to retry loading if contract is null
+  useEffect(() => {
+    let retryTimer: number;
+    if (!isLoadingContract && !contract) {
+      console.log("Contract data is null, will retry loading in 1 second...");
+      retryTimer = window.setTimeout(() => {
+        refetchContract();
+      }, 1000);
+    }
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [contract, isLoadingContract, refetchContract]);
+
   if (isLoadingContract) {
     return (
       <AppLayout>
@@ -380,20 +394,6 @@ export default function ContractDetailPage() {
     );
   }
 
-  // Add effect to retry loading if contract is null
-  useEffect(() => {
-    let retryTimer: number;
-    if (!isLoadingContract && !contract) {
-      console.log("Contract data is null, will retry loading in 1 second...");
-      retryTimer = window.setTimeout(() => {
-        refetchContract();
-      }, 1000);
-    }
-    return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-    };
-  }, [contract, isLoadingContract, refetchContract]);
-
   if (!contract) {
     return (
       <AppLayout>
@@ -404,10 +404,8 @@ export default function ContractDetailPage() {
             <Button onClick={() => refetchContract()}>
               Retry Loading
             </Button>
-            <Button variant="outline" asChild>
-              <Link href="/contracts">
-                <a>Back to Contracts</a>
-              </Link>
+            <Button variant="outline" onClick={() => navigate("/contracts")}>
+              Back to Contracts
             </Button>
           </div>
         </div>
