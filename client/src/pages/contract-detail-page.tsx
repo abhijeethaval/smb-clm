@@ -53,7 +53,7 @@ export default function ContractDetailPage() {
     data: contract,
     isLoading: isLoadingContract,
     refetch: refetchContract,
-  } = useQuery<ContractWithMeta>({
+  } = useQuery<ContractWithApproval>({
     queryKey: [`/api/contracts/${id}`],
   });
 
@@ -373,7 +373,7 @@ export default function ContractDetailPage() {
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span>Created by {contract.createdByUser?.fullName || "Unknown"}</span>
                 <span>•</span>
-                <span>{new Date(contract.createdAt).toLocaleDateString()}</span>
+                <span>{contract.createdAt ? new Date(contract.createdAt).toLocaleDateString() : "Unknown date"}</span>
               </div>
             </div>
           </div>
@@ -469,7 +469,7 @@ export default function ContractDetailPage() {
                             <div>
                               <h4 className="font-medium">{approval.approver.fullName}</h4>
                               <p className="text-sm text-gray-500">
-                                Requested: {new Date(approval.requestedAt).toLocaleString()}
+                                Requested: {approval.requestedAt ? new Date(approval.requestedAt).toLocaleString() : "Unknown date"}
                               </p>
                             </div>
                             <Badge variant="outline" className={getStatusBadgeStyle(approval.status)}>
