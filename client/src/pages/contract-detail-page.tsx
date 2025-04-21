@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 import AppLayout from "@/components/layout/app-layout";
 import {
   Card,
@@ -286,7 +287,7 @@ export default function ContractDetailPage() {
     if (contract && contract.status === "Draft") {
       updateContractMutation.mutate({
         content: version.content,
-        changeDescription: `Restored from version created on ${new Date(version.changedAt).toLocaleString()}`,
+        changeDescription: `Restored from version created on ${formatDateTime(version.changedAt)}`,
       });
     } else {
       toast({
@@ -373,7 +374,7 @@ export default function ContractDetailPage() {
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span>Created by {contract.createdByUser?.fullName || "Unknown"}</span>
                 <span>•</span>
-                <span>{contract.createdAt ? new Date(contract.createdAt).toLocaleDateString() : "Unknown date"}</span>
+                <span>{formatDate(contract.createdAt)}</span>
               </div>
             </div>
           </div>
@@ -395,13 +396,13 @@ export default function ContractDetailPage() {
                 <div>
                   <span className="text-sm text-gray-500">Effective Date:</span>
                   <p className="font-medium">
-                    {contract.effectiveDate ? new Date(contract.effectiveDate).toLocaleDateString() : "Not set"}
+                    {formatDate(contract.effectiveDate) === "—" ? "Not set" : formatDate(contract.effectiveDate)}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Expiry Date:</span>
                   <p className="font-medium">
-                    {contract.expiryDate ? new Date(contract.expiryDate).toLocaleDateString() : "Not set"}
+                    {formatDate(contract.expiryDate) === "—" ? "Not set" : formatDate(contract.expiryDate)}
                   </p>
                 </div>
               </div>
@@ -469,7 +470,7 @@ export default function ContractDetailPage() {
                             <div>
                               <h4 className="font-medium">{approval.approver.fullName}</h4>
                               <p className="text-sm text-gray-500">
-                                Requested: {approval.requestedAt ? new Date(approval.requestedAt).toLocaleString() : "Unknown date"}
+                                Requested: {formatDateTime(approval.requestedAt)}
                               </p>
                             </div>
                             <Badge variant="outline" className={getStatusBadgeStyle(approval.status)}>
