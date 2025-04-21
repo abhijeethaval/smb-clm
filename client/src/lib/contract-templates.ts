@@ -233,8 +233,12 @@ export function fillTemplateWithValues(
 ): string {
   let filledContent = content;
   
+  // Process exact placeholders to avoid partial matches
   Object.entries(values).forEach(([key, value]) => {
-    const placeholder = `[${key}]`;
+    // Use word boundaries to ensure we're replacing complete placeholders
+    // and not parts of other text or placeholders
+    const placeholder = `\\[${key}\\]`;
+    // Only replace the exact placeholder with proper brackets
     filledContent = filledContent.replace(new RegExp(placeholder, 'g'), value);
   });
   

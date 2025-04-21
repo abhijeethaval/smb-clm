@@ -84,22 +84,51 @@ export function CreateContractModal({
     const effectiveDate = data.effectiveDate ? new Date(data.effectiveDate) : undefined;
     const expiryDate = data.expiryDate ? new Date(data.expiryDate) : undefined;
     
-    // Create a placeholder values map for template substitution
-    const placeholderValues: Record<string, string> = {
-      // Split the parties string to extract potential party names
-      "PARTY A": data.parties.split(/[,;&]|\band\b/)[0]?.trim() || "Party A",
-      "PARTY B": data.parties.split(/[,;&]|\band\b/)[1]?.trim() || "Party B",
-      "SELLER": data.parties.split(/[,;&]|\band\b/)[0]?.trim() || "Seller",
-      "BUYER": data.parties.split(/[,;&]|\band\b/)[1]?.trim() || "Buyer",
-      "SUPPLIER NAME": data.parties.split(/[,;&]|\band\b/)[1]?.trim() || "Supplier",
-      "BUYER NAME": data.parties.split(/[,;&]|\band\b/)[0]?.trim() || "Buyer",
-      "JURISDICTION": "State of California, United States",
-      "PARTIES": data.parties,
+    // Extract party names from the "Parties Involved" field
+    const partyNames = data.parties.split(/[,;&]|\band\b/).map(name => name.trim()).filter(Boolean);
+    const party1 = partyNames[0] || "Party A";
+    const party2 = partyNames[1] || "Party B";
+    
+    // Create a template-specific placeholder values map based on template type
+    let placeholderValues: Record<string, string> = {
+      // Common placeholders across all templates
       "EFFECTIVE DATE": effectiveDate ? formatDate(effectiveDate) : "TBD",
       "DATE": new Date().toLocaleDateString(),
-      "DELIVERY DATE": expiryDate ? formatDate(expiryDate) : "TBD",
-      "GRAND TOTAL": contractValue ? `$${contractValue.toLocaleString()}` : "TBD",
+      "JURISDICTION": "State of California, United States",
+      "TERM": "2",
     };
+    
+    // Add template-specific placeholders
+    if (selectedTemplate) {
+      if (selectedTemplate.name.includes("NDA")) {
+        // NDA-specific placeholders
+        placeholderValues = {
+          ...placeholderValues,
+          "PARTY A": party1,
+          "PARTY B": party2,
+          "PARTIES": data.parties,
+        };
+      } else if (selectedTemplate.name.includes("Sales")) {
+        // Sales Agreement-specific placeholders
+        placeholderValues = {
+          ...placeholderValues,
+          "SELLER": party1,
+          "BUYER": party2,
+          "DELIVERY DATE": expiryDate ? formatDate(expiryDate) : "TBD",
+          "DELIVERY LOCATION": "Buyer's address",
+          "WARRANTY PERIOD": "90 days",
+        };
+      } else if (selectedTemplate.name.includes("Purchase")) {
+        // Purchase Order-specific placeholders
+        placeholderValues = {
+          ...placeholderValues,
+          "BUYER NAME": party1,
+          "SUPPLIER NAME": party2,
+          "DELIVERY DATE": expiryDate ? formatDate(expiryDate) : "TBD",
+          "GRAND TOTAL": contractValue ? `$${contractValue.toLocaleString()}` : "TBD",
+        };
+      }
+    }
     
     // Get and fill template content with values
     let content = "";
