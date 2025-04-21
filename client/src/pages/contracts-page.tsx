@@ -68,8 +68,14 @@ export default function ContractsPage() {
     mutationFn: async (contractId: number) => {
       await apiRequest("POST", `/api/contracts/${contractId}/submit`, {});
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
+    onSuccess: async () => {
+      // Invalidate and immediately refetch contracts
+      await queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/contracts"] });
+      
+      // Also update dashboard statistics
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      
       toast({
         title: "Success",
         description: "Contract submitted for approval",
@@ -88,8 +94,18 @@ export default function ContractsPage() {
   const handleCreateContract = async (contractData: any) => {
     setIsSubmitting(true);
     try {
-      await apiRequest("POST", "/api/contracts", contractData);
-      queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
+      // Create the contract
+      const response = await apiRequest("POST", "/api/contracts", contractData);
+      
+      // Invalidate and refetch all queries related to contracts
+      await queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
+      
+      // Force refetch the contracts data to immediately update the UI
+      await queryClient.refetchQueries({ queryKey: ["/api/contracts"] });
+      
+      // Also update dashboard statistics if any
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      
       toast({
         title: "Contract created",
         description: "Your contract has been created successfully.",
