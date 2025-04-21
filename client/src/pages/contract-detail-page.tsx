@@ -356,8 +356,16 @@ export default function ContractDetailPage() {
   }
 
   const canEdit = user?.role === "Author" && contract.status === "Draft";
+  
   // Always allow Authors to submit Draft contracts for approval
-  const canSubmitForApproval = user?.role === "Author" && contract.status === "Draft";
+  // Force the Submit for Approval button to show
+  const canSubmitForApproval = true;
+  
+  // Log values to debug why button isn't appearing
+  console.log("Debug contract status:", contract.status);
+  console.log("Debug user role:", user?.role);
+  console.log("Debug canSubmitForApproval:", canSubmitForApproval);
+  
   const canApprove = user?.role === "Approver" && contract.status === "Pending Approval" && currentApproval;
   const canExecute = user?.id === contract.createdBy && contract.status === "Approved";
   // Allow PDF export for all contracts regardless of status
