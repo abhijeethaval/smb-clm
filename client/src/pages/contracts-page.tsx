@@ -53,9 +53,12 @@ export default function ContractsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch contracts
-  const { data: contracts, isLoading } = useQuery<ContractWithMeta[]>({
+  // Fetch contracts with aggressive refetching configuration
+  const { data: contracts, isLoading, refetch } = useQuery<ContractWithMeta[]>({
     queryKey: ["/api/contracts"],
+    staleTime: 0, // Consider data stale immediately so it refetches when needed
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    refetchOnMount: true, // Refetch whenever the component mounts
   });
 
   // Fetch templates
@@ -69,9 +72,8 @@ export default function ContractsPage() {
       await apiRequest("POST", `/api/contracts/${contractId}/submit`, {});
     },
     onSuccess: async () => {
-      // Invalidate and immediately refetch contracts
-      await queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/contracts"] });
+      // Use direct refetch function for immediate UI update
+      await refetch();
       
       // Also update dashboard statistics
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
@@ -97,11 +99,9 @@ export default function ContractsPage() {
       // Create the contract
       const response = await apiRequest("POST", "/api/contracts", contractData);
       
-      // Invalidate and refetch all queries related to contracts
-      await queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
-      
-      // Force refetch the contracts data to immediately update the UI
-      await queryClient.refetchQueries({ queryKey: ["/api/contracts"] });
+      // Immediately trigger a direct refetch using the refetch function 
+      // This is the most direct way to ensure immediate UI update
+      await refetch();
       
       // Also update dashboard statistics if any
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
