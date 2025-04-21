@@ -111,9 +111,14 @@ export default function ContractDetailPage() {
     },
   });
 
-  // Submit for approval mutation
+  // Submit for approval mutation with better error handling
   const submitForApprovalMutation = useMutation({
     mutationFn: async () => {
+      // Ensure the contract is in Draft status before submission
+      if (!contract || contract.status !== "Draft") {
+        throw new Error(`Contract must be in Draft status to submit for approval. Current status: ${contract?.status || 'Unknown'}`);
+      }
+      
       await apiRequest("POST", `/api/contracts/${id}/submit`, {});
     },
     onSuccess: () => {
@@ -126,6 +131,7 @@ export default function ContractDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
     },
     onError: (error) => {
+      console.error("Submit for approval error:", error);
       toast({
         title: "Error submitting contract",
         description: error instanceof Error ? error.message : "Failed to submit contract",
@@ -339,37 +345,57 @@ export default function ContractDetailPage() {
     );
   }
 
+  // Add effect to retry loading if contract is null
+  useEffect(() => {
+    let retryTimer: number;
+    if (!isLoadingContract && !contract) {
+      console.log("Contract data is null, will retry loading in 1 second...");
+      retryTimer = window.setTimeout(() => {
+        refetchContract();
+      }, 1000);
+    }
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [contract, isLoadingContract, refetchContract]);
+
   if (!contract) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-96">
           <h2 className="text-2xl font-bold mb-4">Contract Not Found</h2>
-          <p className="text-gray-500 mb-6">The contract you're looking for doesn't exist or you don't have permission to view it.</p>
-          <Button asChild>
-            <Link href="/contracts">
-              <a>Back to Contracts</a>
-            </Link>
-          </Button>
+          <p className="text-gray-500 mb-6">The contract is still loading or you don't have permission to view it.</p>
+          <div className="flex gap-3">
+            <Button onClick={() => refetchContract()}>
+              Retry Loading
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/contracts">
+                <a>Back to Contracts</a>
+              </Link>
+            </Button>
+          </div>
         </div>
       </AppLayout>
     );
   }
 
-  const canEdit = user?.role === "Author" && contract.status === "Draft";
+  // Ensure we're handling null contract safely
+  const contractStatus = contract ? contract.status : 'Draft';
   
-  // Always allow Authors to submit Draft contracts for approval
-  // Force the Submit for Approval button to show
-  const canSubmitForApproval = true;
+  // Define permissions based on user role and contract status
+  const canEdit = user?.role === "Author" && contractStatus === "Draft";
+  const canSubmitForApproval = user?.role === "Author" && contractStatus === "Draft";
+  const canApprove = user?.role === "Approver" && contractStatus === "Pending Approval" && currentApproval;
+  const canExecute = user?.id === contract?.createdBy && contractStatus === "Approved";
   
-  // Log values to debug why button isn't appearing
-  console.log("Debug contract status:", contract.status);
-  console.log("Debug user role:", user?.role);
-  console.log("Debug canSubmitForApproval:", canSubmitForApproval);
-  
-  const canApprove = user?.role === "Approver" && contract.status === "Pending Approval" && currentApproval;
-  const canExecute = user?.id === contract.createdBy && contract.status === "Approved";
   // Allow PDF export for all contracts regardless of status
   const canExport = true;
+  
+  // Debug logs
+  console.log("Contract status:", contractStatus);
+  console.log("User role:", user?.role);
+  console.log("canSubmitForApproval:", canSubmitForApproval);
 
   return (
     <AppLayout>
