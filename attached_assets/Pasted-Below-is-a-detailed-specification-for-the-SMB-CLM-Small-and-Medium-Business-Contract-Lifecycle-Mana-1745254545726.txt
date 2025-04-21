@@ -1,0 +1,137 @@
+Below is a detailed specification for the SMB‑CLM (Small and Medium Business Contract Lifecycle Management) web application. This will help Replit scaffold a fully functional app based on your requirements.
+
+**Overview**
+The SMB‑CLM app allows contract authors to draft, edit, and upload contracts, and contract approvers to review and provide feedback. It includes version control, search, and PDF export capabilities.
+
+**User Roles**
+- **Author**: Can draft new contracts from predefined templates, edit clauses, upload supporting documents, and send contracts for approval.
+- **Approver**: Can review contracts and either approve or reject them with feedback.
+
+**Contract Templates**
+The app will come preloaded with three common templates:
+- NDA
+- Sales Agreement
+- Purchase Order
+
+**Metadata & Versioning**
+Each contract record will include the following fields:
+- Contract Name
+- Description
+- Parties Involved
+- Effective Date
+- Expiry Date
+- Contract Value
+- Status
+
+Version history and an audit trail of all changes will be maintained.
+
+**Search & Export**
+Users can search and filter contracts by:
+- Contract Name
+- Parties
+- Status
+- Effective/Expiry Date
+
+Finalized contracts can be exported as PDF documents.
+
+**Authentication**
+Simple email/password login for all users.
+
+**UI Screens**
+1. Login / Signup
+2. Dashboard (overview)
+3. Contract List
+4. Contract Detail & History
+5. Contract Editor (drafting/editing)
+6. Approval Queue
+7. Export PDF View
+
+**Status Flow**
+Contracts will move through these statuses:
+- Draft
+- Pending Approval
+- Approved
+- Rejected
+- Executed
+- Expired
+
+**Technology Stack**
+- Frontend: React
+- Backend: .NET Core Web API
+- Database: PostgreSQL
+
+**JSON Spec**
+```json
+{
+  "appName": "SMB‑CLM",
+  "roles": {
+    "Author": {
+      "can": [
+        "Draft new contracts from templates",
+        "Edit clauses",
+        "Upload supporting docs",
+        "Send contract for approval"
+      ]
+    },
+    "Approver": {
+      "can": [
+        "Review contracts",
+        "Approve or reject with feedback"
+      ]
+    }
+  },
+  "templates": [
+    "NDA",
+    "Sales Agreement",
+    "Purchase Order"
+  ],
+  "metadataFields": [
+    "Contract Name",
+    "Description",
+    "Parties Involved",
+    "Effective Date",
+    "Expiry Date",
+    "Contract Value",
+    "Status"
+  ],
+  "versioning": {
+    "enabled": true,
+    "auditTrail": true
+  },
+  "searchFilters": [
+    "Contract Name",
+    "Parties",
+    "Status",
+    "Effective/Expiry Date"
+  ],
+  "export": {
+    "format": ["PDF"]
+  },
+  "authentication": {
+    "type": "email/password"
+  },
+  "uiScreens": [
+    "Login / Signup",
+    "Dashboard",
+    "Contract List",
+    "Contract Detail & History",
+    "Contract Editor",
+    "Approval Queue",
+    "Export PDF View"
+  ],
+  "statusFlow": [
+    "Draft",
+    "Pending Approval",
+    "Approved",
+    "Rejected",
+    "Executed",
+    "Expired"
+  ],
+  "techStack": {
+    "frontend": "React",
+    "backend": ".NET Core Web API",
+    "database": "PostgreSQL"
+  }
+}
+```
+
