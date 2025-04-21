@@ -205,22 +205,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contractId = parseInt(req.params.id);
       const contract = await storage.getContract(contractId);
       
+      console.log(`Submit for approval request - Contract ID: ${contractId}, Found:`, !!contract);
+      
       if (!contract) {
         return res.status(404).json({ message: "Contract not found" });
       }
+      
+      // Log contract details for troubleshooting
+      console.log(`Contract status: "${contract.status}", Created by: ${contract.createdBy}, Current user: ${req.user.id}`);
       
       // Check if user is the creator
       if (contract.createdBy !== req.user.id) {
         return res.status(403).json({ message: "Only the contract creator can submit for approval" });
       }
       
+      // Fix for missing status - ensure we have a valid status
+      if (!contract.status) {
+        console.log("Contract has no status, setting to Draft before proceeding");
+        await storage.updateContract(contractId, { status: "Draft" });
+        // Refetch contract to get updated status
+        const updatedContract = await storage.getContract(contractId);
+        if (!updatedContract) {
+          return res.status(500).json({ message: "Failed to update contract status" });
+        }
+        // Update our local reference
+        contract.status = updatedContract.status;
+      }
+      
       // Check if already in approval process
       if (contract.status !== "Draft" && contract.status !== "Rejected") {
-        return res.status(400).json({ message: `Contract is already in ${contract.status} status` });
+        return res.status(400).json({ message: `Contract is already in ${contract.status || "unknown"} status` });
       }
       
       // Get approvers
       const approvers = (await storage.listUsers()).filter(user => user.role === "Approver");
+      console.log(`Found ${approvers.length} approvers for contract`);
       
       if (approvers.length === 0) {
         return res.status(400).json({ message: "No approvers available in the system" });

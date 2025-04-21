@@ -119,14 +119,35 @@ export default function ContractDetailPage() {
   // Submit for approval mutation with better error handling
   const submitForApprovalMutation = useMutation({
     mutationFn: async () => {
-      // Ensure the contract is in Draft status before submission
-      if (!contract || contract.status !== "Draft") {
-        throw new Error(`Contract must be in Draft status to submit for approval. Current status: ${contract?.status || 'Unknown'}`);
+      // Log what we're about to do
+      console.log(`Attempting to submit contract ${id} for approval...`);
+      
+      // Ensure the contract exists
+      if (!contract) {
+        console.error("Cannot submit null contract for approval");
+        throw new Error("Contract data is not available. Please refresh the page and try again.");
       }
       
-      await apiRequest("POST", `/api/contracts/${id}/submit`, {});
+      // Ensure the contract is in Draft status before submission
+      // Add detailed logging for diagnosis
+      console.log(`Contract status check: current status is "${contract.status}"`);
+      if (contract.status !== "Draft") {
+        console.error(`Contract status error: expected "Draft" but got "${contract.status}"`);
+        throw new Error(`Contract must be in Draft status to submit for approval. Current status: ${contract.status || 'Unknown'}`);
+      }
+      
+      // Make the API request with error handling
+      try {
+        const response = await apiRequest("POST", `/api/contracts/${id}/submit`, {});
+        console.log("Submit for approval response:", response);
+        return response;
+      } catch (err) {
+        console.error("API request error:", err);
+        throw err; // Re-throw to trigger onError
+      }
     },
     onSuccess: () => {
+      console.log("Contract submitted successfully");
       refetchContract();
       toast({
         title: "Contract submitted",
@@ -137,9 +158,18 @@ export default function ContractDetailPage() {
     },
     onError: (error) => {
       console.error("Submit for approval error:", error);
+      
+      // Enhanced error message for API errors
+      let errorMessage = "Failed to submit contract";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error);
+      }
+      
       toast({
         title: "Error submitting contract",
-        description: error instanceof Error ? error.message : "Failed to submit contract",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -385,13 +415,24 @@ export default function ContractDetailPage() {
     );
   }
 
+  // Debug contract information (temporary)
+  console.log("Contract data:", contract);
+  
   // Ensure we're handling null contract safely
   const contractStatus = contract ? contract.status : 'Draft';
   
   // Define permissions based on user role and contract status
-  const canEdit = user?.role === "Author" && contractStatus === "Draft";
-  const canSubmitForApproval = user?.role === "Author" && contractStatus === "Draft";
-  const canApprove = user?.role === "Approver" && contractStatus === "Pending Approval" && currentApproval;
+  const canEdit = user?.role === "Author" && contract?.status === "Draft";
+  // Important fix: Make sure canSubmitForApproval is explicitly checking user role and contract status
+  const canSubmitForApproval = user?.role === "Author" && contract?.status === "Draft";
+  console.log("User role:", user?.role, "Contract status:", contract?.status);
+  console.log("canSubmitForApproval evaluation:", {
+    hasAuthorRole: user?.role === "Author", 
+    hasDraftStatus: contract?.status === "Draft",
+    combinedCheck: user?.role === "Author" && contract?.status === "Draft"
+  });
+  
+  const canApprove = user?.role === "Approver" && contract?.status === "Pending Approval" && currentApproval;
   const canExecute = user?.id === contract?.createdBy && contractStatus === "Approved";
   
   // Allow PDF export for all contracts regardless of status
