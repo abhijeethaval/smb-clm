@@ -144,6 +144,7 @@ export function CreateContractModal({
       contractValue: contractValue,
       effectiveDate: effectiveDate ? effectiveDate.toISOString() : undefined,
       expiryDate: expiryDate ? expiryDate.toISOString() : undefined,
+      status: "Draft", // Explicitly set status to Draft to ensure consistency
     };
     
     onSubmit(contractData);

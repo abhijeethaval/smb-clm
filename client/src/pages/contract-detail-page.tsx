@@ -49,13 +49,18 @@ export default function ContractDetailPage() {
   const [users, setUsers] = useState<Record<number, User>>({});
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  // Fetch contract details
+  // Fetch contract details with better error handling
   const {
     data: contract,
     isLoading: isLoadingContract,
     refetch: refetchContract,
+    error: contractError
   } = useQuery<ContractWithApproval>({
     queryKey: [`/api/contracts/${id}`],
+    retry: 3,
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   // Fetch contract versions
