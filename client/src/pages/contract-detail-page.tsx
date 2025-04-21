@@ -359,7 +359,8 @@ export default function ContractDetailPage() {
   const canSubmitForApproval = user?.role === "Author" && contract.status === "Draft";
   const canApprove = user?.role === "Approver" && contract.status === "Pending Approval" && currentApproval;
   const canExecute = user?.id === contract.createdBy && contract.status === "Approved";
-  const canExport = contract.status === "Approved" || contract.status === "Executed";
+  // Allow PDF export for all contracts regardless of status
+  const canExport = true;
 
   return (
     <AppLayout>
