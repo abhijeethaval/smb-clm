@@ -49,7 +49,9 @@ export default function AuthPage() {
 
   // Redirect to dashboard if user is already logged in
   useEffect(() => {
+    console.log("Auth page - Current user:", user);
     if (user) {
+      console.log("Auth page - Redirecting to dashboard");
       navigate("/");
     }
   }, [user, navigate]);
@@ -76,12 +78,22 @@ export default function AuthPage() {
 
   // Handle login form submission
   function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    loginMutation.mutate(values);
+    loginMutation.mutate(values, {
+      onSuccess: () => {
+        console.log("Login successful, redirecting to dashboard");
+        navigate("/");
+      }
+    });
   }
 
   // Handle registration form submission
   function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    registerMutation.mutate(values);
+    registerMutation.mutate(values, {
+      onSuccess: () => {
+        console.log("Registration successful, redirecting to dashboard");
+        navigate("/");
+      }
+    });
   }
 
   // Quick login buttons for demo accounts
@@ -90,7 +102,12 @@ export default function AuthPage() {
       ? { username: 'author@example.com', password: 'author123' } 
       : { username: 'approver@example.com', password: 'approver123' };
     
-    loginMutation.mutate(credentials);
+    loginMutation.mutate(credentials, {
+      onSuccess: () => {
+        console.log("Quick login successful, redirecting to dashboard");
+        navigate("/");
+      }
+    });
   };
 
   return (
