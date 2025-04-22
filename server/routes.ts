@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, hashPassword } from "./auth";
+import { seedDefaultTemplates } from "./seed-templates";
 import { z } from "zod";
 import { 
   Contract, 
@@ -38,6 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Create author & approver accounts if none exist
   await seedInitialUsers();
+  
+  // Create default contract templates if none exist
+  await seedDefaultTemplates();
 
   // Templates Routes
   app.get("/api/templates", isAuthenticated, async (req, res) => {
