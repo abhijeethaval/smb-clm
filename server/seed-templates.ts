@@ -14,7 +14,7 @@ export async function seedDefaultTemplates() {
     await storage.createTemplate({
       name: "Non-Disclosure Agreement",
       description: "Standard Non-Disclosure Agreement for protecting confidential information.",
-      content: getDefaultContentForTemplate("Non-Disclosure Agreement")
+      content: getDefaultContentForTemplate("NDA")
     });
     
     // Create Sales Agreement template

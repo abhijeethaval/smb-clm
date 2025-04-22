@@ -133,7 +133,17 @@ export function CreateContractModal({
     // Get and fill template content with values
     let content = "";
     if (selectedTemplate) {
-      content = fillTemplateWithValues(selectedTemplate.content, placeholderValues);
+      // Use the template content from the database first, fallback to getDefaultContentForTemplate
+      const templateName = selectedTemplate.name.includes("NDA") ? "NDA" : 
+                           selectedTemplate.name.includes("Sales") ? "Sales Agreement" : 
+                           selectedTemplate.name.includes("Purchase") ? "Purchase Order" : "";
+      
+      // If template has content, use it, otherwise get default content
+      const templateContent = selectedTemplate.content || getDefaultContentForTemplate(templateName);
+      content = fillTemplateWithValues(templateContent, placeholderValues);
+      
+      console.log("Template Content Source:", selectedTemplate.content ? "Database" : "Default");
+      console.log("Template Content Length:", content.length);
     }
     
     // Prepare the contract data
