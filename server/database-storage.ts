@@ -108,7 +108,8 @@ export class DatabaseStorage implements IStorage {
 
   async listContractsWithMeta(): Promise<ContractWithMeta[]> {
     const allContracts = await db.select().from(contracts);
-    const userIds = [...new Set(allContracts.map(c => c.createdBy))];
+    // Convert Set to Array for compatibility
+    const userIds = Array.from(new Set(allContracts.map(c => c.createdBy)));
     
     const userMap = new Map<number, { username: string; fullName: string }>();
     
@@ -122,10 +123,13 @@ export class DatabaseStorage implements IStorage {
       if (user) userMap.set(userId, user);
     }
     
-    return allContracts.map(contract => ({
-      ...contract,
-      createdByUser: userMap.get(contract.createdBy)
-    }));
+    return allContracts.map(contract => {
+      const creator = userMap.get(contract.createdBy);
+      return {
+        ...contract,
+        createdByUser: creator || undefined
+      };
+    });
   }
 
   async listContractsByUser(userId: number): Promise<Contract[]> {
@@ -135,9 +139,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async listContractsByStatus(status: string): Promise<Contract[]> {
+    // Cast the status string to the appropriate type
+    const validStatus = status as "Draft" | "Pending Approval" | "Approved" | "Rejected" | "Executed" | "Expired";
     return await db.select()
       .from(contracts)
-      .where(eq(contracts.status, status));
+      .where(eq(contracts.status, validStatus));
   }
 
   async searchContracts(query: string): Promise<Contract[]> {
@@ -187,8 +193,15 @@ export class DatabaseStorage implements IStorage {
     id: number, 
     update: { status: string; feedback?: string; actionDate: Date }
   ): Promise<ContractApproval | undefined> {
+    // Cast status to the correct type for the database
+    const validStatus = update.status as "Approved" | "Rejected" | "Pending";
+    
     const [updatedApproval] = await db.update(contractApprovals)
-      .set(update)
+      .set({
+        status: validStatus,
+        feedback: update.feedback || null,
+        actionDate: update.actionDate
+      })
       .where(eq(contractApprovals.id, id))
       .returning();
     
